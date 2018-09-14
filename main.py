@@ -20,13 +20,16 @@ n_classes = 8+1
 anchor_scales = [24, 36, 50]
 
 # Load Data
-imgdir = '/Users/seongjungkim/Desktop/samples'
+imgdir = './samples'
 imgext = 'jpg'
-label_path = '/Users/seongjungkim/Desktop/samples/labels.txt'
+label_path = './samples/labels.txt'
 dataprovider = Dataprovider(imgdir , imgext)
 train_labs = dataprovider.read_gtbboxes_onRAM(label_path)
 train_imgs = dataprovider.read_images_on_RAM()
 train_imgs = dataprovider.images_normalize(train_imgs )
+
+
+
 
 # Placeholder
 x_ = tf.placeholder(dtype=tf.float32, shape=[1, None, None, 3], name='x_')
@@ -93,7 +96,12 @@ sess = sess_start()
 param_count()
 # Saver
 saver = tf.train.Saver(max_to_keep=10)
-saver.restore(sess , tf.train.latest_checkpoint('./models'))
+# Restore Models
+model_dir =  './models'
+if not tf.train.latest_checkpoint(model_dir) is None:
+    print '{} restored '.format(tf.train.latest_checkpoint(model_dir))
+saver.restore(sess , tf.train.latest_checkpoint(model_dir))
+
 # Write log
 tb_writer = tf.summary.FileWriter('logs')
 tb_writer.add_graph(tf.get_default_graph())
