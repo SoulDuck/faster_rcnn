@@ -41,6 +41,7 @@ class Dataprovider():
 
             for n in range(int(n_labels)):
                 x, y, w, h, btn = elements[2 + n * 5:2 + (n + 1) * 5]
+                print x,y,w,h ,btn
                 btn = btn.replace('button', '')
                 x, y, w, h, btn = map(int, [x, y, w, h, btn])
                 tmp_list.append([x, y, w + x, h + y, btn])
@@ -51,10 +52,14 @@ class Dataprovider():
     def read_gtbboxes_onRAM(self,label_path):
         gtbboxes_dict = self._read_gtbboxes(label_path)
         ret_gtbboxes=[]
+        error_labels = []
         for name in self.img_names:
-            gt_bboxes=gtbboxes_dict[name]
-            ret_gtbboxes.append(gt_bboxes)
-
+            try:
+                gt_bboxes=gtbboxes_dict[name]
+                ret_gtbboxes.append(gt_bboxes)
+            except KeyError:
+                error_labels.append(name)
+        print 'Error list : {}'.format(error_labels)
         return np.asarray(ret_gtbboxes)
 
     @classmethod
