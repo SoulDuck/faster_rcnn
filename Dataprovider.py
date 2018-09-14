@@ -19,16 +19,17 @@ class Dataprovider():
     def read_images_on_RAM(self):
         print "{} images  loaded on RAM".format(len(self.img_paths))
         imgs=[]
-        try:
-            for i,path in enumerate(self.img_paths):
+
+        for i,path in enumerate(self.img_paths):
+            try:
                 progress(i,len(self.img_paths))
                 img=np.asarray(Image.open(path).convert('RGB'))
                 imgs.append(img)
+            except:
+                continue;
 
-            imgs = np.asarray(imgs)
-            print
-        except:
-            continue;
+        imgs = np.asarray(imgs)
+        print
         return imgs
 
     def _read_gtbboxes(self,label_path):
