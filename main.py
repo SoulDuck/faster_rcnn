@@ -14,15 +14,15 @@ from utils import sess_start , optimizer
 from eval import Eval
 from train import Train
 from Dataprovider import Dataprovider
-
+import configure as cfg
 # Configure
 n_classes = 8+1
 anchor_scales = [24, 36, 50]
 
 # Load Data
-imgdir = './samples'
-imgext = 'jpg'
-label_path = './samples/labels.txt'
+imgdir = cfg.imgdir
+imgext = cfg.imgext
+label_path = cfg.label_path
 dataprovider = Dataprovider(imgdir , imgext)
 train_labs = dataprovider.read_gtbboxes_onRAM(label_path)
 train_imgs = dataprovider.read_images_on_RAM()
