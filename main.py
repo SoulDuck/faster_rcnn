@@ -108,16 +108,20 @@ tb_writer = tf.summary.FileWriter('logs')
 tb_writer.add_graph(tf.get_default_graph())
 
 # Set feed
-batch_xs , batch_ys = dataprovider.next_batch(train_imgs , train_labs , 1)
-_ , h,w,ch = np.shape(batch_xs)
 
-train_feed = {x_ : batch_xs , gt_boxes:batch_ys , im_dims : np.asarray([[h,w]])  ,phase_train : True }
-eval_feed = {x_ : batch_xs , gt_boxes:batch_ys , im_dims : [[h,w]]  ,phase_train : False }
+for i in range(100000):
+    batch_xs , batch_ys = dataprovider.next_batch(train_imgs , train_labs , 1)
+    _ , h,w,ch = np.shape(batch_xs)
 
-# Set fetches
-eval_fetches = [cost_op , top_conv , itr_fr_blobs_op]
-train_fetches = [train_op , cost_op ,itr_fr_bbox_target_op ]
+    train_feed = {x_ : batch_xs , gt_boxes:batch_ys , im_dims : np.asarray([[h,w]])  ,phase_train : True }
+    eval_feed = {x_ : batch_xs , gt_boxes:batch_ys , im_dims : [[h,w]]  ,phase_train : False }
 
-# Training
-train , cost ,itr_fr_bbox_target = sess.run(train_fetches , train_feed)
-cost , top_conv , itr_fr_blobs = sess.run(eval_fetches, train_feed)
+    # Set fetches
+    eval_fetches = [cost_op , top_conv , itr_fr_blobs_op]
+    train_fetches = [train_op , cost_op ,itr_fr_bbox_target_op ]
+
+    # Training
+    train , cost ,itr_fr_bbox_target = sess.run(train_fetches , train_feed)
+    cost , top_conv , itr_fr_blobs = sess.run(eval_fetches, train_feed)
+
+    print "train cost : {}".format(cost)
