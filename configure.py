@@ -1,4 +1,4 @@
-imgdir = './Images'
+imgdir = './poc_data/Images'
 imgext = 'jpg'
-label_path = './samples/labels_training.txt'
+label_path = './poc_data/labels_training.txt'
 
