@@ -41,7 +41,6 @@ class Dataprovider():
 
             for n in range(int(n_labels)):
                 x, y, w, h, btn = elements[2 + n * 5:2 + (n + 1) * 5]
-                print x,y,w,h ,btn
                 btn = btn.replace('button', '')
                 x, y, w, h, btn = map(int, [x, y, w, h, btn])
                 tmp_list.append([x, y, w + x, h + y, btn])
