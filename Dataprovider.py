@@ -17,7 +17,7 @@ class Dataprovider():
 
 
     def read_imagjes_on_RAM(self):
-        print "{} images  loaded on RAM".format(len(self.img_paths))
+        print "{} images  loaded on RAM and Normalization".format(len(self.img_paths))
         imgs=[]
 
         for i,path in enumerate(self.img_paths):
