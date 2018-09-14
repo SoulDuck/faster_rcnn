@@ -16,7 +16,7 @@ class Dataprovider():
         return imgs/255.
 
 
-    def read_imagjes_on_RAM(self):
+    def read_images_on_RAM(self):
         print "{} images  loaded on RAM and Normalization".format(len(self.img_paths))
         imgs=[]
 
