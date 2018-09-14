@@ -16,7 +16,7 @@ class Dataprovider():
         return imgs/255.
 
 
-    def read_images_on_RAM(self):
+    def read_imagjes_on_RAM(self):
         print "{} images  loaded on RAM".format(len(self.img_paths))
         imgs=[]
 
@@ -24,7 +24,9 @@ class Dataprovider():
             try:
                 progress(i,len(self.img_paths))
                 img=np.asarray(Image.open(path).convert('RGB'))
+                img = img/255.
                 imgs.append(img)
+
             except:
                 continue;
 
