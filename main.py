@@ -26,7 +26,7 @@ label_path = cfg.label_path
 dataprovider = Dataprovider(imgdir , imgext)
 train_labs = dataprovider.read_gtbboxes_onRAM(label_path)
 train_imgs = dataprovider.read_images_on_RAM()
-train_imgs = dataprovider.images_normalize(train_imgs )
+#train_imgs = dataprovider.images_normalize(train_imgs )
 print '# train imgs : {} # train labs : {}'.format(len(train_imgs) , len(train_labs))
 
 

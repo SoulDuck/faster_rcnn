@@ -29,7 +29,6 @@ class Dataprovider():
 
             except:
                 continue;
-
         imgs = np.asarray(imgs)
         print
         return imgs
