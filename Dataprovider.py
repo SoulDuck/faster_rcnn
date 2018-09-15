@@ -37,6 +37,7 @@ class Dataprovider():
 class Wally(Dataprovider):
     def __init__(self ,imgdir ,imgext):
         Dataprovider.__init__(self , imgdir ,imgext)
+        'wally images '
     def read_images_on_RAM(self , normalize):
         imgs = []
         for i,path in enumerate(self.img_paths):
@@ -45,7 +46,6 @@ class Wally(Dataprovider):
             if normalize:
                 img = img/255.
             imgs.append(img)
-        imgs=np.asarray(imgs)
         return imgs
 
     def read_gtbboxes_onRAM(self , label_path):
@@ -66,7 +66,7 @@ class Wally(Dataprovider):
         for name in self.img_names:
             ret_elements.append(elements[name])
 
-        return np.asarray(ret_elements)
+        return ret_elements
 
 
         pass;

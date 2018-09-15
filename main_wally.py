@@ -29,7 +29,7 @@ train_imgs = wally.read_images_on_RAM(normalize=True)
 train_labs = wally.read_gtbboxes_onRAM(label_path)
 #train_imgs = dataprovider.images_normalize(train_imgs )
 print train_labs
-print '# train imgs : {} # train labs : {}'.format(len(train_imgs) , len(train_labs))
+print '# train imgs : {} # train labs : {}'.format(np.shape(train_imgs) , np.shape(train_labs))
 
 # Placeholder
 x_ = tf.placeholder(dtype=tf.float32, shape=[1, None, None, 3], name='x_')
@@ -109,8 +109,8 @@ tb_writer.add_graph(tf.get_default_graph())
 # Set feed
 
 for i in range(cfg.max_iter):
-    batch_xs , batch_ys = dataprovider.next_batch(train_imgs , train_labs , 1)
-    assert np.max(batch_xs) <= 1
+    batch_xs , batch_ys = wally.next_batch(train_imgs , train_labs , 1)
+    assert np.max(batch_xs) <= 1 ,'image max : {}'.format(np.max(batch_xs))
     _ , h,w,ch = np.shape(batch_xs)
 
     train_feed = {x_ : batch_xs , gt_boxes:batch_ys , im_dims : np.asarray([[h,w]])  ,phase_train : True }
@@ -122,6 +122,5 @@ for i in range(cfg.max_iter):
 
     # Training
     train , cost ,itr_fr_bbox_target = sess.run(train_fetches , train_feed)
-    cost , top_conv , itr_fr_blobs = sess.run(eval_fetches, train_feed)
 
     print "train cost : {}".format(cost)
