@@ -75,14 +75,16 @@ rois_op = tf.cond(phase_train , lambda : ptl_rois_op , lambda : roi_blobs_op)
 # Fast RCNN
 fast_rcnn_cls_logits , fast_rcnn_bbox_logits = \
     fast_rcnn(top_conv , rois_op ,im_dims  , num_classes=n_classes , phase_train = phase_train)
+#
+itr_fr_bbox_target_op = get_interest_target(tf.argmax(fast_rcnn_cls_logits , axis =1), fast_rcnn_bbox_logits , n_classes )
+# inverse blobs to coordinates (x1,y1,x2,y2)
+itr_fr_blobs_op = inv_targets(rois_op, itr_fr_bbox_target_op)
+
 # FastRCNN CLS Loss
 fr_cls_loss_op = fast_rcnn_cls_loss(fast_rcnn_cls_logits , ptl_labels_op)
 # FastRCNN BBOX Loss
 fr_bbox_loss_op = fast_rcnn_bbox_loss(fast_rcnn_bbox_logits ,ptl_bbox_targets_op , ptl_bbox_inside_weights_op , ptl_bbox_outside_weights_op )
 # if cls 1 , bbox = [2,3,1,3 ,4,5,6,7, 1,2,3,4] ==> [1,2,3,4]
-itr_fr_bbox_target_op = get_interest_target(tf.argmax(fast_rcnn_cls_logits , axis =1), fast_rcnn_bbox_logits , n_classes )
-# inverse blobs to coordinates (x1,y1,x2,y2)
-itr_fr_blobs_op = inv_targets(rois_op, itr_fr_bbox_target_op)
 
 
 
@@ -111,20 +113,28 @@ tb_writer.add_graph(tf.get_default_graph())
 
 # Set feed
 
+min_cost = 100000
+ckpt = 100
 for i in range(cfg.max_iter):
     progress(i ,cfg.max_iter )
+    # random batch
     batch_xs , batch_ys = wally.next_batch(train_imgs , train_labs , 1)
+    # check normalize
     assert np.max(batch_xs) <= 1 ,'image max : {}'.format(np.max(batch_xs))
-    _ , h,w,ch = np.shape(batch_xs)
 
+    # Image shape
+    _ , h,w,ch = np.shape(batch_xs)
+    # Set Feed
     train_feed = {x_ : batch_xs , gt_boxes:batch_ys , im_dims : np.asarray([[h,w]])  ,phase_train : True }
     eval_feed = {x_ : batch_xs , gt_boxes:batch_ys , im_dims : [[h,w]]  ,phase_train : False }
-
     # Set fetches
     eval_fetches = [cost_op , top_conv , itr_fr_blobs_op]
     train_fetches = [train_op , cost_op ,itr_fr_bbox_target_op ]
-
     # Training
     train , cost ,itr_fr_bbox_target = sess.run(train_fetches , train_feed)
+    if ckpt % 100 ==0 :
+        eval_cost, itr_fr_bbox_target = sess.run(eval_fetches, eval_feed)
+        print itr_fr_bbox_target[0]
+        print "train cost : {} \n Eval cost : {}" .format(cost , eval_cost)
+        exit()
 
-    print "train cost : {}".format(cost)

@@ -29,3 +29,7 @@ def param_count():
             variable_parameters *= dim.value
         total_parameters += variable_parameters
     print(total_parameters)
+
+def draw_rectangle():
+    pass;
+
