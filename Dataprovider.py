@@ -47,6 +47,8 @@ class Wally(Dataprovider):
         for line in lines:
             fname , h, w, label , x1,y1,x2,y2 = line.split(',')
             x1,y1,x2,y2 = map(lambda ele : int(ele.strip()) , [x1,y1,x2,y2])
+            if 'waldo' in label:
+                label = 1
             elements.append([x1,y1,x2,y2,label])
 
         elements = np.asarray(elements)
@@ -81,7 +83,7 @@ class PocKia(Dataprovider):
         assert len(ret_gtbboxes) == len(lines)
         return ret_gtbboxes
 
-    def read_gtbboxes_onRAM(self,label_path):
+    def read_gtbboxes_onRAM(self ,label_path):
         gtbboxes_dict = self._read_gtbboxes(label_path)
         ret_gtbboxes=[]
         error_labels = []
