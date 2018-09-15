@@ -103,7 +103,7 @@ if not os.path.isdir(model_dir):
     os.makedirs(model_dir)
 if not tf.train.latest_checkpoint(model_dir) is None:
     print '{} restored '.format(tf.train.latest_checkpoint(model_dir))
-saver.restore(sess , tf.train.latest_checkpoint(model_dir))
+    saver.restore(sess , tf.train.latest_checkpoint(model_dir))
 
 # Write log
 tb_writer = tf.summary.FileWriter(cfg.log_dir)
