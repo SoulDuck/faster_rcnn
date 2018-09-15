@@ -120,7 +120,7 @@ tb_writer.add_graph(tf.get_default_graph())
 
 min_cost = 100000
 ckpt = 100
-eval_imgdir = cfg.eval_imgdir
+eval_root_imgdir = cfg.eval_imgdir
 for i in range(cfg.max_iter):
     progress(i ,cfg.max_iter )
     # random batch
@@ -138,6 +138,7 @@ for i in range(cfg.max_iter):
     train , cost ,itr_fr_bbox_target = sess.run(train_fetches , train_feed)
     if i % ckpt  == 0 :
         print "train cost : {} \n".format(cost)
+        eval_imgdir =os.path.join(eval_root_imgdir ,  str(i))
         for test_ind in range(len(test_imgs)):
             batch_xs = test_imgs[test_ind:test_ind+1]
             batch_xs = np.asarray(batch_xs)
@@ -148,5 +149,7 @@ for i in range(cfg.max_iter):
             itr_fr_blobs = np.squeeze(itr_fr_blobs )
 
             batch_xs = batch_xs.reshape(np.shape(batch_xs)[1:])
-            draw_rectangles(batch_xs  , cls_logits , itr_fr_blobs, savepath=os.path.join(eval_imgdir , '{}.jpg'.format(test_ind)))
+
+            draw_rectangles(batch_xs, cls_logits, itr_fr_blobs,
+                            savepath=os.path.join(eval_imgdir , '{}.jpg'.format(test_ind)))
 
