@@ -42,7 +42,7 @@ class Wally(Dataprovider):
         imgs = []
         for i,path in enumerate(self.img_paths):
             progress(i , len(self.img_paths))
-            img=np.asarray(Image.open(path))
+            img=np.asarray(Image.open(path).convert('RGB'))
             if normalize:
                 img = img/255.
             imgs.append(img)
