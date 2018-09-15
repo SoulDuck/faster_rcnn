@@ -1,6 +1,7 @@
 #-*- coding:utf-8 -*-
 import tensorflow as tf
 import numpy as np
+import os
 from anchor_target import anchor_target
 from backbone import Backbone
 from rpn import rpn_cls_loss ,rpn_bbox_loss
@@ -98,6 +99,8 @@ param_count()
 saver = tf.train.Saver(max_to_keep=10)
 # Restore Models
 model_dir =  cfg.model_dir
+if not os.path.isdir(model_dir):
+    os.makedirs(model_dir)
 if not tf.train.latest_checkpoint(model_dir) is None:
     print '{} restored '.format(tf.train.latest_checkpoint(model_dir))
 saver.restore(sess , tf.train.latest_checkpoint(model_dir))
