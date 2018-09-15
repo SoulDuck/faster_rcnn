@@ -60,8 +60,6 @@ def anchor_target_py(topconv_h , topconv_w , gt_boxes, im_dims, _feat_stride, an
     # Get argmax overlaps
     gt_max_overlaps, gt_argmax_overlaps_inds = _get_gt_overlaps(overlaps)
 
-    print gt_argmax_overlaps_inds
-
     # Settings
     RPN_NEGATIVE_OVERLAP = 0.3
     RPN_POSITIVE_OVERLAP = 0.7
