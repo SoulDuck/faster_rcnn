@@ -152,16 +152,18 @@ def _balance_fg_bg(labels , batch_size, fg_fraction):    # Training Set 에서  
         disable_inds = npr.choice(
             fg_inds, size=(len(fg_inds) - num_fg), replace=False)  # replace = False --> 겹치지 않게 한다
         labels[disable_inds] = -1
+    else: # same or less
+        num_fg = len(fg_inds)
     # subsample negative labels if we have too many
 
-    num_bg = batch_size - np.sum(labels == 1)
+    # 1:1 = fg and bg
+    num_bg = num_fg
     bg_inds = np.where(labels == 0)[0]
-    if len(bg_inds) > len(fg_inds):
-        disable_inds = npr.choice(bg_inds, size=(len(bg_inds) - len(fg_inds)), replace=False)
+    if len(bg_inds) > len(num_bg):
+        disable_inds = npr.choice(bg_inds, size=(num_bg), replace=False)
         labels[disable_inds] = -1
-    else:
-        disable_inds = npr.choice(bg_inds, size=(len(bg_inds) - num_bg), replace=False)
-        labels[disable_inds] = -1
+    else: # num_bg > num_fg
+        pass;
     assert np.sum([labels == 0]) == np.sum([labels == 1]), '{} {} {}'.format(np.sum([labels == 0]),
                                                                              np.sum([labels == 1]),
                                                                              np.sum([labels == -1]))

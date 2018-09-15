@@ -11,7 +11,7 @@ from rpn import rpn_cls_layer , rpn_bbox_layer
 from utils import param_count
 import roi
 import sys , time
-from utils import sess_start , optimizer
+from utils import sess_start , optimizer , progress
 from eval import Eval
 from train import Train
 from Dataprovider import Wally
@@ -112,6 +112,7 @@ tb_writer.add_graph(tf.get_default_graph())
 # Set feed
 
 for i in range(cfg.max_iter):
+    progress(i ,cfg.max_iter )
     batch_xs , batch_ys = wally.next_batch(train_imgs , train_labs , 1)
     assert np.max(batch_xs) <= 1 ,'image max : {}'.format(np.max(batch_xs))
     _ , h,w,ch = np.shape(batch_xs)
