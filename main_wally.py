@@ -138,18 +138,26 @@ for i in range(cfg.max_iter):
     train , cost ,itr_fr_bbox_target = sess.run(train_fetches , train_feed)
     if i % ckpt  == 0 :
         print "train cost : {} \n".format(cost)
+        # make folder
         eval_imgdir =os.path.join(eval_root_imgdir ,  str(i))
+        if not os.path.isdir(eval_imgdir):
+            os.makedirs(eval_imgdir)
+
         for test_ind in range(len(test_imgs)):
+            # Load Wally Test Images
             batch_xs = test_imgs[test_ind:test_ind+1]
             batch_xs = np.asarray(batch_xs)
+
+            # Test Eval feed , fetches
             eval_feed = {x_: batch_xs, gt_boxes: batch_ys, im_dims: [[h, w]], phase_train: False}
             eval_fetches = [fast_rcnn_cls_logits_op, itr_fr_blobs_op]
+            # Run sess
             cls_logits , itr_fr_blobs = sess.run(eval_fetches, eval_feed)
             cls_logits = np.argmax(cls_logits, axis=1)
+            # (1,?, 5 ) ==> (?,5)
             itr_fr_blobs = np.squeeze(itr_fr_blobs )
-
+            # (height,width,3) ==>(height ,width,3)
             batch_xs = batch_xs.reshape(np.shape(batch_xs)[1:])
-
-            draw_rectangles(batch_xs, cls_logits, itr_fr_blobs,
+            # Draw Foreground Rectangle and Background Rectangle
+            draw_rectangles(batch_xs*255, cls_logits, itr_fr_blobs,
                             savepath=os.path.join(eval_imgdir , '{}.jpg'.format(test_ind)))
-
