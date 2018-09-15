@@ -160,7 +160,7 @@ def _balance_fg_bg(labels , batch_size, fg_fraction):    # Training Set 에서  
     num_bg = num_fg
     bg_inds = np.where(labels == 0)[0]
     if len(bg_inds) > num_bg:
-        disable_inds = npr.choice(bg_inds, size=(num_bg), replace=False)
+        disable_inds = npr.choice(bg_inds, size=len((bg_inds)) - num_bg , replace=False)
         labels[disable_inds] = -1
     else: # num_bg > num_fg
         pass;
