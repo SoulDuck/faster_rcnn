@@ -16,8 +16,8 @@ from train import Train
 from Dataprovider import Dataprovider
 import configure as cfg
 # Configure
-n_classes = 8+1
-anchor_scales = [24, 36, 50]
+n_classes = cfg.n_classes
+anchor_scales = cfg.anchor_scales
 
 # Load Data
 imgdir = cfg.imgdir
@@ -28,9 +28,6 @@ train_labs = dataprovider.read_gtbboxes_onRAM(label_path)
 train_imgs = dataprovider.read_images_on_RAM()
 #train_imgs = dataprovider.images_normalize(train_imgs )
 print '# train imgs : {} # train labs : {}'.format(len(train_imgs) , len(train_labs))
-
-
-
 
 # Placeholder
 x_ = tf.placeholder(dtype=tf.float32, shape=[1, None, None, 3], name='x_')
@@ -109,8 +106,9 @@ tb_writer.add_graph(tf.get_default_graph())
 
 # Set feed
 
-for i in range(100000):
+for i in range(cfg.max_iter):
     batch_xs , batch_ys = dataprovider.next_batch(train_imgs , train_labs , 1)
+    assert np.max(batch_xs) <= 1
     _ , h,w,ch = np.shape(batch_xs)
 
     train_feed = {x_ : batch_xs , gt_boxes:batch_ys , im_dims : np.asarray([[h,w]])  ,phase_train : True }
