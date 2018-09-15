@@ -122,4 +122,5 @@ for i in range(cfg.max_iter):
     train , cost ,itr_fr_bbox_target = sess.run(train_fetches , train_feed)
     cost , top_conv , itr_fr_blobs = sess.run(eval_fetches, train_feed)
 
+
     print "train cost : {}".format(cost)

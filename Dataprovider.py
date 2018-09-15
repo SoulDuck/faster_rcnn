@@ -37,7 +37,6 @@ class Dataprovider():
 class Wally(Dataprovider):
     def __init__(self ,imgdir ,imgext):
         Dataprovider.__init__(self , imgdir ,imgext)
-        'wally images '
     def read_images_on_RAM(self , normalize):
         imgs = []
         for i,path in enumerate(self.img_paths):
@@ -47,6 +46,20 @@ class Wally(Dataprovider):
                 img = img/255.
             imgs.append(img)
         return imgs
+
+    def read_test_images_on_RAM(self , imgdir , imgext , normalize):
+        img_paths = glob.glob(os.path.join(imgdir, '*.{}'.format(imgext)))
+        print '# images : {}'.format(len(img_paths))
+        imgs = []
+        for i,path in enumerate(img_paths):
+            progress(i , len(img_paths))
+            img=np.asarray(Image.open(path).convert('RGB'))
+            if normalize:
+                img = img/255.
+            imgs.append(img)
+        return imgs
+
+
 
     def read_gtbboxes_onRAM(self , label_path):
 

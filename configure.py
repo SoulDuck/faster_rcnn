@@ -6,13 +6,17 @@ label_path = './poc_data/labels_training.txt'
 """
 
 # Wally Dataset
-imgdir = 'WallyDataset/images'
-imgext = 'jpg'
-label_path =  'WallyDataset/annotations/annotations.csv'
-n_classes = 8+1
+train_imgdir = './WallyDataset/images'
+train_imgext = 'jpg'
+label_path =  './WallyDataset/annotations/annotations.csv'
+
+test_imgdir ='./WallyDataset/eval_images'
+test_imgext  = 'jpg'
+n_classes = 1+1
 anchor_scales = [24, 36, 50]
 
 model_dir = './models'
 log_dir = './logs'
+eval_imgdir ='./evalImage'
 #
 max_iter = 100000

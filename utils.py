@@ -1,7 +1,9 @@
 #-*- coding:utf-8 -*-
-import sys
+import sys ,os
 import tensorflow as tf
 from tensorflow.python.tools import inspect_checkpoint as chkp
+import cv2
+import numpy as np
 def sess_start():
     # 필요한 만큼의 Gpu만 사용하게 하기
     sess=tf.Session()
@@ -30,6 +32,43 @@ def param_count():
         total_parameters += variable_parameters
     print(total_parameters)
 
-def draw_rectangle():
-    pass;
+
+def draw_bboxes(img , bboxes, box_names  , savepath ):
+    """
+
+    :param bboxes x1,y1,x2,y2:
+    :return:
+    """
+
+    for ind , box in enumerate(bboxes):
+        x1, y1, x2, y2 = box  # x1 ,y1 ,x2 ,y2
+
+        img = cv2.rectangle(img,(x1, y1),(x2 ,y2), linewidth=2, edgecolor='b', facecolor='none')
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        cv2.putText(img,box_names[ind] , (x1,y1) , font , 4 , (255,255,255) ,2  ,cv2.LINE_AA)
+
+    cv2.imwrite(savepath , img )
+
+
+def draw_rectangles(img ,labels , bboxes , savepath ):
+
+    # extract Indices
+    bg_indices = np.where([labels == 0])[-1]
+    fg_indices = np.where([labels != 0])[-1]
+    bg_bboxes = bboxes[bg_indices]
+    fg_bboxes = bboxes[fg_indices]
+    fg_cls = labels[fg_indices]
+    bg_cls = labels[bg_indices]
+
+    # setting savepath of foreground and background
+    savename = os.path.split(savepath)[1]
+    savename  ,ext = os.path.splitext(savename)[0]
+    fg_savepath =savepath.replace(savename , savename+'_fg')
+    bg_savepath = savepath.replace(savename, savename + '_bg')
+
+
+    # Draw Foreground BoundBox
+    draw_bboxes(img , fg_bboxes , box_names=fg_cls , savepath= fg_savepath)
+    # Draw Background BoundBox
+    draw_bboxes(img, bg_bboxes, box_names= bg_cls ,savepath=bg_savepath)
 
