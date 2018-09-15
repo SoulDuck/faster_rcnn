@@ -12,7 +12,7 @@ label_path =  'WallyDataset/annotations/annotations.csv'
 n_classes = 8+1
 anchor_scales = [24, 36, 50]
 
-
-
+model_dir = './models'
+log_dir = './logs'
 #
 max_iter = 100000

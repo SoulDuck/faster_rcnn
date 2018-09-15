@@ -97,13 +97,13 @@ param_count()
 # Saver
 saver = tf.train.Saver(max_to_keep=10)
 # Restore Models
-model_dir =  './models'
+model_dir =  cfg.model_dir
 if not tf.train.latest_checkpoint(model_dir) is None:
     print '{} restored '.format(tf.train.latest_checkpoint(model_dir))
 saver.restore(sess , tf.train.latest_checkpoint(model_dir))
 
 # Write log
-tb_writer = tf.summary.FileWriter('logs')
+tb_writer = tf.summary.FileWriter(cfg.log_dir)
 tb_writer.add_graph(tf.get_default_graph())
 
 # Set feed
