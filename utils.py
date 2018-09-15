@@ -35,18 +35,16 @@ def param_count():
 
 def draw_bboxes(img , bboxes, box_names  , savepath ):
     """
-
     :param bboxes x1,y1,x2,y2:
     :return:
     """
-
     for ind , box in enumerate(bboxes):
         x1, y1, x2, y2 = box  # x1 ,y1 ,x2 ,y2
 
-        img = cv2.rectangle(img,(x1, y1),(x2 ,y2), linewidth=2, edgecolor='b', facecolor='none')
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        cv2.putText(img,box_names[ind] , (x1,y1) , font , 4 , (255,255,255) ,2  ,cv2.LINE_AA)
 
+        img = cv2.rectangle(img,(x1, y1),(x2 ,y2), (0,255,0),3)
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        cv2.putText(img,str(box_names[ind]) , (x1,y1) , font , 1 , (255,255,255) ,2  ,cv2.LINE_AA)
     cv2.imwrite(savepath , img )
 
 
@@ -62,13 +60,17 @@ def draw_rectangles(img ,labels , bboxes , savepath ):
 
     # setting savepath of foreground and background
     savename = os.path.split(savepath)[1]
-    savename  ,ext = os.path.splitext(savename)[0]
+    savename = os.path.splitext(savename)[0]
     fg_savepath =savepath.replace(savename , savename+'_fg')
     bg_savepath = savepath.replace(savename, savename + '_bg')
 
 
-    # Draw Foreground BoundBox
-    draw_bboxes(img , fg_bboxes , box_names=fg_cls , savepath= fg_savepath)
-    # Draw Background BoundBox
-    draw_bboxes(img, bg_bboxes, box_names= bg_cls ,savepath=bg_savepath)
 
+    if not len(fg_bboxes) ==0:
+        draw_bboxes(img , fg_bboxes , box_names=fg_cls , savepath= fg_savepath)
+    # Draw Background BoundBox
+    if not len(bg_bboxes) == 0:
+        draw_bboxes(img, bg_bboxes, box_names= bg_cls ,savepath=bg_savepath)
+
+if __name__ == '__main__':
+    img_path ='./WallyDataset/eval_images/1.jpg'

@@ -11,7 +11,7 @@ from rpn import rpn_cls_layer , rpn_bbox_layer
 from utils import param_count
 import roi
 import sys , time
-from utils import sess_start , optimizer , progress , draw_bboxes
+from utils import sess_start , optimizer , progress , draw_bboxes , draw_rectangles
 from eval import Eval
 from train import Train
 from Dataprovider import Wally
@@ -130,22 +130,23 @@ for i in range(cfg.max_iter):
 
     # Image shape
     _ , h,w,ch = np.shape(batch_xs)
-    # Set Feed
+    # Set Train Feed
     train_feed = {x_ : batch_xs , gt_boxes:batch_ys , im_dims : np.asarray([[h,w]])  ,phase_train : True }
-    eval_feed = {x_ : batch_xs , gt_boxes:batch_ys , im_dims : [[h,w]]  ,phase_train : False }
-    # Set fetches
-    eval_fetches = [fast_rcnn_cls_logits_op,itr_fr_blobs_op]
+    # Set Train fetches
     train_fetches = [train_op , cost_op ,itr_fr_bbox_target_op ]
     # Training
     train , cost ,itr_fr_bbox_target = sess.run(train_fetches , train_feed)
-    if ckpt % 100 ==0 :
+    if i % ckpt  == 0 :
+        print "train cost : {} \n".format(cost)
+        for test_ind in range(len(test_imgs)):
+            batch_xs = test_imgs[test_ind:test_ind+1]
+            batch_xs = np.asarray(batch_xs)
+            eval_feed = {x_: batch_xs, gt_boxes: batch_ys, im_dims: [[h, w]], phase_train: False}
+            eval_fetches = [fast_rcnn_cls_logits_op, itr_fr_blobs_op]
+            cls_logits , itr_fr_blobs = sess.run(eval_fetches, eval_feed)
+            cls_logits = np.argmax(cls_logits, axis=1)
+            itr_fr_blobs = np.squeeze(itr_fr_blobs )
 
-        cls_logits , itr_fr_blobs = sess.run(eval_fetches, eval_feed)
-        cls_logits = np.argmax(cls_logits, axis=1)
-        itr_fr_blobs = np.squeeze(itr_fr_blobs )
-        print itr_fr_blobs [0]
-        print "train cost : {} \n" .format(cost)
-        draw_bboxes(batch_xs , itr_fr_blobs , cls_logits , savepath=eval_imgdir)
-
-    exit()
+            batch_xs = batch_xs.reshape(np.shape(batch_xs)[1:])
+            draw_rectangles(batch_xs  , cls_logits , itr_fr_blobs, savepath=os.path.join(eval_imgdir , '{}.jpg'.format(test_ind)))
 

@@ -15,6 +15,9 @@ test_imgext  = 'jpg'
 n_classes = 1+1
 anchor_scales = [24, 36, 50]
 
+
+
+#
 model_dir = './models'
 log_dir = './logs'
 eval_imgdir ='./evalImage'
