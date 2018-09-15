@@ -3,6 +3,7 @@ from PIL import Image
 import numpy as np
 import numpy.random as npr
 from utils import progress
+from utils import progress
 class Dataprovider():
     def __init__(self ,imgdir ,imgext):
         self.imgdir = imgdir
@@ -36,24 +37,36 @@ class Dataprovider():
 class Wally(Dataprovider):
     def __init__(self ,imgdir ,imgext):
         Dataprovider.__init__(self , imgdir ,imgext)
-    def read_images_on_RAM(self):
-        pass;
+    def read_images_on_RAM(self , normalize):
+        imgs = []
+        for i,path in enumerate(self.img_paths):
+            progress(i , len(self.img_paths))
+            img=np.asarray(Image.open(path))
+            if normalize:
+                img = img/255.
+            imgs.append(img)
+        imgs=np.asarray(imgs)
+        return imgs
 
     def read_gtbboxes_onRAM(self , label_path):
+
         f=open(label_path , 'r')
         lines = f.readlines()
         lines = lines[1:]
-        elements=[]
+        elements={}
         for line in lines:
             fname , h, w, label , x1,y1,x2,y2 = line.split(',')
             x1,y1,x2,y2 = map(lambda ele : int(ele.strip()) , [x1,y1,x2,y2])
             if 'waldo' in label:
                 label = 1
-            elements.append([x1,y1,x2,y2,label])
 
-        elements = np.asarray(elements)
-        print '# GroundTruths {} '.format(np.shape(elements))
-        return elements
+            elements[fname] = [[x1,y1,x2,y2,label]]
+
+        ret_elements = []
+        for name in self.img_names:
+            ret_elements.append(elements[name])
+
+        return np.asarray(ret_elements)
 
 
         pass;
