@@ -45,7 +45,8 @@ class Imgaug(object):
         :param img_size: (image height , image width)
         :return: numpy
         """
-        assert len(coordinate) == 4 and np.ndim(coordinate) == 1 and len(img_size) == 2 and np.ndim(img_size) == 1
+        assert len(coordinate) == 4 and np.ndim(coordinate) == 1 and len(img_size) == 2 and np.ndim(img_size) == 1\
+            ,'coordinate : {} image shape {}'.format(coordinate , img_size)
         x1, y1, x2, y2 = coordinate
         ret_np = np.zeros(img_size)
         ret_np[y1:y2, x1:x2] = 255
@@ -454,6 +455,37 @@ class NoiseAugmentation(Imgaug):
         new_sample_dict = self.set_img_anns(sample_dict, np_img, coordinates)
         return new_sample_dict
 
+
+class Augmentator():
+    def __init__(self):
+        self.sample_dict = {}
+        self.imgaug = Imgaug()
+        self.blur_images = BlurAugmentatino()
+        self.invert_images = InvertAugmentation()
+        self.noise_images = NoiseAugmentation()
+        self.tilt_images = TiltImages(range(-10, 10) + [90, 180, 270])
+        self.rt_images = RotationTransform()
+        self.flip_transform = FlipTransform()
+        self.center_crop = CenterCrop()
+        self.bright_aug = BrightnessAugmentation(range(10, 100))
+        self.contrast_tranform = ContrastTranform(range(10, 200))
+
+
+
+    def apply_aug(self, np_img , anns):
+        self.sample_dict['img'] = np_img
+        self.sample_dict['anns'] = anns
+
+
+        self.sample_dict = self.blur_images(self.sample_dict)
+        self.sample_dict = self.invert_images(self.sample_dict)
+        self.sample_dict = self.noise_images(self.sample_dict)
+        self.sample_dict = self.tilt_images(self.sample_dict)
+        self.sample_dict = self.rt_images(self.sample_dict)
+        self.sample_dict = self.flip_transform(self.sample_dict)
+        self.sample_dict = self.center_crop(self.sample_dict)
+        self.sample_dict = self.bright_aug(self.sample_dict)
+        self.sample_dict = self.contrast_tranform(self.sample_dict)
 # ref : https://github.com/ayooshkathuria/pytorch-yolo-v3
 # ref : https://github.com/qqwweee/keras-yolo3/blob/master/kmeans.py
 """
@@ -466,6 +498,7 @@ if __name__ == '__main__':
     start_time = time.time()
     img = Image.open('pockia_samples.jpg').convert('RGB')
 
+
     np_img = np.asarray(img)
     coord_bike = [124,134,124+ 443,134+286]
     coord_car = [468,74,468+218,74+96]
@@ -475,6 +508,14 @@ if __name__ == '__main__':
     coords = [button3 , button4]
 
 
+    print np.shape(np_img)
+    augmentator = Augmentator()
+    augmentator.apply_aug(np_img , np.asarray(coords))
+    blur_img = augmentator.sample_dict['img']
+    blur_coords = augmentator.sample_dict['anns']
+    augmentator.imgaug.show_image(blur_img, blur_coords, 'blur')
+
+    exit()
 
     # load Images
     sample_dict = {}
@@ -532,14 +573,14 @@ if __name__ == '__main__':
     imgaug.show_image(cc_img, cc_coords , 'center crop')
 
     #BrightnessAugmentation
-    bright_aug= BrightnessAugmentation(range(10,100))
+    bright_aug= BrightnessAugmentation(range(10,20))
     sample_dict = bright_aug(sample_dict )
     ba_img = sample_dict['img']
     ba_coords = sample_dict['anns']
     imgaug.show_image(ba_img, ba_coords , 'bright augmentation')
 
     #ContrastTranform
-    contrast_tranform=ContrastTranform(range(10,200))
+    contrast_tranform=ContrastTranform(range(10,20))
     sample_dict = contrast_tranform(sample_dict)
     ct_img = sample_dict['img']
     ct_coords = sample_dict['anns']

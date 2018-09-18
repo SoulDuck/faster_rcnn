@@ -17,14 +17,14 @@ from train import Train
 from Dataprovider import PocKia
 import configure as cfg
 import utils
-import aug
+from aug import Augmentator
 from nms import non_maximum_supression
 # Configure
 n_classes = cfg.n_classes
 anchor_scales = cfg.anchor_scales
 
 # Define Augmentator
-
+augmentator = Augmentator()
 
 # Placeholder
 x_ = tf.placeholder(dtype=tf.float32, shape=[1, None, None, 3], name='x_')
@@ -128,11 +128,22 @@ test_labels = pockia_test.read_gtbboxes(test_label_path)
 #
 for i in range(cfg.max_iter):
     ind = pockia_train.generate_index(None)
-    batch_xs , batch_names = pockia_train.read_image(True, ind)
+    batch_xs , batch_names = pockia_train.read_image(False, ind)
     batch_ys = train_labels[batch_names]
-    # aug
+
+    # Augmentation
+    batch_cls = batch_ys[:, -1]
+    augmentator.apply_aug(np_img = batch_xs[0] ,anns =  batch_ys[:,:-1])
+    batch_xs = augmentator.sample_dict['img']
+    batch_ys = augmentator.sample_dict['anns']
+    # Merge batch_ys , batch_cls
+    augmentator.imgaug.show_image(batch_xs , batch_ys)
+    batch_ys = np.hstack([batch_ys , batch_cls.reshape([-1,1])])
+    batch_xs = np.asarray(batch_xs) / 255.
+    batch_xs = batch_xs.reshape([1]+list(np.shape(batch_xs)))
 
     progress(i ,cfg.max_iter )
+
     # check normalize
     assert np.max(batch_xs) <= 1 ,'image max : {}'.format(np.max(batch_xs))
 
