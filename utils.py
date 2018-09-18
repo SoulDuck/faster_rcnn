@@ -7,6 +7,8 @@ import numpy as np
 def sess_start():
     # 필요한 만큼의 Gpu만 사용하게 하기
     sess=tf.Session()
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = True
     init=tf.group( tf.global_variables_initializer() , tf.local_variables_initializer() )
     sess.run(init)
     return sess

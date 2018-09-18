@@ -170,10 +170,7 @@ for i in range(cfg.max_iter):
             # Eval
             acc = Eval.get_accuracy_all(fr_blobs_cls[nms_keep] , batch_ys, n_classes=cfg.n_classes)
             # merge
-
             merged_acc = Eval.merge_acc(merged_acc , acc)
-
-
             # (height,width,3) ==>(height ,width,3)
             batch_xs = batch_xs.reshape(np.shape(batch_xs)[1:])
             # Draw Foreground Rectangle and Background Rectangle
