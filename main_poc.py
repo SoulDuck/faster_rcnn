@@ -150,7 +150,7 @@ for i in range(cfg.max_iter):
 
         val_acc_counter = {} # (count , acc )
         merged_acc = {}
-        for test_ind in range(len(pockia_test.img_paths)):
+        for test_ind in range(len(pockia_test.img_paths[:3])):
             utils.progress( test_ind , len(pockia_test.img_paths))
             # Get batch
             batch_xs , batch_names = pockia_test.read_image(True, test_ind)
@@ -172,7 +172,6 @@ for i in range(cfg.max_iter):
             # merge
 
             merged_acc = Eval.merge_acc(merged_acc , acc)
-            print merged_acc
 
 
             # (height,width,3) ==>(height ,width,3)
@@ -180,3 +179,6 @@ for i in range(cfg.max_iter):
             # Draw Foreground Rectangle and Background Rectangle
             draw_rectangles(batch_xs*255, cls_logits, itr_fr_blobs,
                             savepath=os.path.join(eval_imgdir , '{}.jpg'.format(test_ind)))
+        print Eval.get_meanacc(merged_acc )
+
+

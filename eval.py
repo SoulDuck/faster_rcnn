@@ -68,6 +68,13 @@ class Eval():
 
         return acc_dict
 
+    @classmethod
+    def get_meanacc(cls , acc_dict):
+        mean_acc_list= []
+        for key in acc_dict:
+            mean_acc_list.append(acc_dict[key][1]/float(acc_dict[key][0]))
+        return mean_acc_list
+
 if __name__ == '__main__':
     preds= [[100,100,200,200,3] , [50,50,100,100,1]  ,[100,100,100,200,1] ,[300,200,400,400,2] ]
     trues = [[100,100,200,200,3] , [100,100,300,300,1] , [100,100,400,400,2] ,[50,70,400,400,2]]
