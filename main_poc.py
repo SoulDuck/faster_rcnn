@@ -17,6 +17,7 @@ from train import Train
 from Dataprovider import PocKia
 import configure as cfg
 import utils
+from nms import non_maximum_supression
 # Configure
 n_classes = cfg.n_classes
 anchor_scales = cfg.anchor_scales
@@ -128,7 +129,6 @@ for i in range(cfg.max_iter):
     batch_ys = train_labels[batch_names]
 
     progress(i ,cfg.max_iter )
-    # random batch
     # check normalize
     assert np.max(batch_xs) <= 1 ,'image max : {}'.format(np.max(batch_xs))
 
@@ -159,7 +159,14 @@ for i in range(cfg.max_iter):
             cls_logits = np.argmax(cls_logits, axis=1)
             # (1,?, 5 ) ==> (?,5)
             itr_fr_blobs = np.squeeze(itr_fr_blobs )
-            # nms
+            fr_blobs_cls = np.hstack([itr_fr_blobs , cls_logits.reshape([-1,1])])
+            nms_keep = non_maximum_supression(fr_blobs_cls, 0.01)
+            print 'before nms {} ==> after nms {}'.format(len(fr_blobs_cls), len(nms_keep))
+            # Calculate accuracy
+
+
+
+
 
 
 
