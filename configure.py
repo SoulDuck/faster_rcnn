@@ -3,13 +3,13 @@
 
 
 
-train_imgdir = '/Volumes/My Passport/data/kia/review_data/training'
+train_imgdir = './clutteredPOCKIA_TRAIN'
 train_imgext = 'jpg'
-test_imgdir = '/Volumes/My Passport/data/kia/review_data/test'
+test_imgdir = './clutteredPOCKIA_TEST_2'
 test_imgext = 'jpg'
 
-train_label_path = '/Volumes/My Passport/data/kia/review_data/training/labels.txt'
-test_label_path = '/Volumes/My Passport/data/kia/review_data/test/labels.txt'
+train_label_path = './clutteredPOCKIA_TRAIN/poc_labels.txt'
+test_label_path = './clutteredPOCKIA_TEST_2/poc_labels.txt'
 
 """
 # Wally Dataset
