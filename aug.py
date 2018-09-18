@@ -9,7 +9,15 @@ import cv2
 import math
 import copy
 import tensorflow as tf
+import time
 # ref : https://github.com/mdbloice/Augmentor
+from PIL import ImageFilter
+from imgaug import augmenters as iaa
+import PIL.ImageOps
+
+
+
+
 class Imgaug(object):
     def __init__(self):
         pass;
@@ -109,6 +117,35 @@ class Imgaug(object):
         """
         np_img = np.flip(np_img, index)
         return np_img
+    def blur(self, np_img):
+        seq = iaa.Sequential([
+            # Blur
+            iaa.SomeOf(1,[
+                iaa.GaussianBlur(sigma=(1, 5.5)),
+                iaa.AverageBlur(k=(2, 7)),
+                iaa.MedianBlur((3, 11))
+            ])
+        ])
+        augimgs = seq.augment_images(np_img)
+
+        return np.asarray(augimgs)
+    # Invert Image
+    def invert(self , np_img):
+        img=Image.fromarray(np_img)
+        inverted_image = PIL.ImageOps.invert(img)
+        return np.asarray(inverted_image )
+
+    def noise(self,np_img):
+        seq = iaa.Sequential([
+            # Blur
+            iaa.SomeOf(1,[
+                iaa.AdditiveGaussianNoise(loc=0, scale=(0.0, 0.05 * 255), per_channel=0.5),
+                iaa.Dropout((0.01, 0.1), per_channel=0.5),
+                iaa.CoarseDropout((0.03, 0.15), size_percent=(0.02, 0.05), per_channel=0.2),
+            ])
+        ])
+        augimgs = seq.augment_images(np_img)
+        return augimgs
 
     # Callback Function
     def _mask_transform(self ,img_size ,coordinates , func , index ):
@@ -117,7 +154,6 @@ class Imgaug(object):
         tf_masks = map(lambda mask: func(mask , index), masks)  # rotated masked
         tf_coords = self.get_TLBRs(tf_masks)
         return tf_coords
-
     def show_image(self , image ,coordinates , prefix=None):
         """
         Show image with a couple of coordinates
@@ -233,16 +269,6 @@ class Imgaug(object):
         x_ctr = ((x2 - x1) /2)
         y_ctr = ((y2 - y1) / 2)
         return x_ctr, y_ctr
-
-
-
-
-
-
-
-
-
-
 class TiltImages(Imgaug):
     def __init__(self , angles):
         self.angles = angles
@@ -345,8 +371,8 @@ class BrightnessAugmentation(Imgaug):
     """
     def __init__(self , bright_range):
         self.bright_range = bright_range
-        self.k = random.choice(bright_range)
     def __call__(self , sample_dict):
+        self.k = random.choice(self.bright_range)
         sample_dict = copy.deepcopy(sample_dict)
         np_img, coordinates = self.get_img_anns(sample_dict)
         np_img = self.increase_brightness(np_img , self.k )
@@ -372,8 +398,10 @@ class ContrastTranform(Imgaug):
     ref : https://stackoverflow.com/questions/42045362/change-contrast-of-image-in-pil
     """
     def __init__(self  , k_range):
-        self.k = random.choice(k_range)
+        self.k_range = k_range
+
     def __call__(self , sample_dict):
+        self.k = random.choice(self.k_range)
         np_img, coordinates = self.get_img_anns(sample_dict)
         np_img = self.change_contrast(Image.fromarray(np_img) , self.k)
         new_sample_dict = self.set_img_anns(sample_dict, np_img , coordinates )
@@ -389,6 +417,43 @@ class ContrastTranform(Imgaug):
 
         return np.asarray(img.point(contrast))
 
+class BlurAugmentatino(Imgaug):
+    def __init__(self ):
+        pass;
+    def __call__(self, sample_dict):
+        np_img, coordinates = self.get_img_anns(sample_dict)
+        np_img = self.blur(np_img)
+        new_sample_dict = self.set_img_anns(sample_dict, np_img, coordinates)
+        return new_sample_dict
+
+
+
+class InvertAugmentation(Imgaug):
+    def __init__(self ):
+        pass;
+
+    def __call__(self, sample_dict):
+        ind = random.randint(0,1000)
+        if ind % 2 ==0:
+            return sample_dict
+        np_img, coordinates = self.get_img_anns(sample_dict)
+        np_img = self.invert(np_img)
+        new_sample_dict = self.set_img_anns(sample_dict, np_img, coordinates)
+        return new_sample_dict
+
+class NoiseAugmentation(Imgaug):
+    def __init__(self ):
+        pass;
+
+    def __call__(self, sample_dict):
+        ind = random.randint(0,1000)
+        if ind % 2 ==0:
+            return sample_dict
+        np_img, coordinates = self.get_img_anns(sample_dict)
+        np_img = self.noise(np_img)
+        new_sample_dict = self.set_img_anns(sample_dict, np_img, coordinates)
+        return new_sample_dict
+
 # ref : https://github.com/ayooshkathuria/pytorch-yolo-v3
 # ref : https://github.com/qqwweee/keras-yolo3/blob/master/kmeans.py
 """
@@ -396,35 +461,20 @@ class ContrastTranform(Imgaug):
  in YOLOv2, intersection over union (IOU) is used as a distance metric. The IOU calculations are made assuming all \
  the bounding boxes are located at one point, i.e. only width and height are used as features
 """
-class Kmeans(object):
-    def __call__(self ,boxes , k , dist ):
-        self.kmeans()
-    def kmeans(self, boxes, k, dist=np.median):
-        box_number = boxes.shape[0]
-        distances = np.empty((box_number, k))
-        last_nearest = np.zeros((box_number,))
-        np.random.seed()
-        clusters = boxes[np.random.choice(
-            box_number, k, replace=False)]  # init k clusters
-        while True:
-            distances = 1 - self.iou(boxes, clusters)
-            current_nearest = np.argmin(distances, axis=1)
-            if (last_nearest == current_nearest).all():
-                break  # clusters won't change
-            for cluster in range(k):
-                clusters[cluster] = dist(  # update clusters
-                    boxes[current_nearest == cluster], axis=0)
 
-            last_nearest = current_nearest
-
-        return clusters
 if __name__ == '__main__':
-    img = Image.open('dog.jpg').convert('RGB')
+    start_time = time.time()
+    img = Image.open('pockia_samples.jpg').convert('RGB')
+
     np_img = np.asarray(img)
     coord_bike = [124,134,124+ 443,134+286]
     coord_car = [468,74,468+218,74+96]
     coord_dog = [131,219,131+180,219+324]
-    coords = [coord_bike  , coord_car , coord_dog]
+    button3=[765,309,765+26,309+28]
+    button4=[903,372,903+34,372+44]
+    coords = [button3 , button4]
+
+
 
     # load Images
     sample_dict = {}
@@ -432,9 +482,28 @@ if __name__ == '__main__':
     sample_dict['anns'] = coords
     sample_dict['names'] = 'namees'
 
-
+    imgaug = Imgaug()
     # Tilt
-    imgaug=Imgaug()
+
+    blur_images = BlurAugmentatino()
+    sample_dict =blur_images(sample_dict )
+    blur_img = sample_dict['img']
+    blur_coords = sample_dict['anns']
+    imgaug.show_image(blur_img, blur_coords , 'blur')
+
+    invert_images = InvertAugmentation()
+    sample_dict = invert_images(sample_dict)
+    inv_img = sample_dict['img']
+    inv_coords = sample_dict['anns']
+    imgaug.show_image(inv_img, inv_coords, 'invert')
+
+    noise_images = NoiseAugmentation()
+    sample_dict = noise_images(sample_dict)
+    noi_img = sample_dict['img']
+    noi_coords = sample_dict['anns']
+    imgaug.show_image(noi_img, noi_coords, 'noise')
+
+
     tilt_images = TiltImages(range(-10 , 10) + [90,180,270])
     sample_dict =tilt_images(sample_dict )
     t_img = sample_dict['img']
@@ -470,8 +539,9 @@ if __name__ == '__main__':
     imgaug.show_image(ba_img, ba_coords , 'bright augmentation')
 
     #ContrastTranform
-    contrast_tranform=ContrastTranform(range(100,200))
+    contrast_tranform=ContrastTranform(range(10,200))
     sample_dict = contrast_tranform(sample_dict)
     ct_img = sample_dict['img']
     ct_coords = sample_dict['anns']
     imgaug.show_image(ct_img, ct_coords, 'contrast tranform')
+    time = time.time() - start_time

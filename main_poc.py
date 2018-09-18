@@ -17,12 +17,14 @@ from train import Train
 from Dataprovider import PocKia
 import configure as cfg
 import utils
+import aug
 from nms import non_maximum_supression
 # Configure
 n_classes = cfg.n_classes
 anchor_scales = cfg.anchor_scales
 
-# Load Data
+# Define Augmentator
+
 
 # Placeholder
 x_ = tf.placeholder(dtype=tf.float32, shape=[1, None, None, 3], name='x_')
@@ -123,10 +125,12 @@ pockia_test = PocKia(test_imgdir, test_imgext)
 train_labels = pockia_train.read_gtbboxes(train_label_path)
 test_labels = pockia_test.read_gtbboxes(test_label_path)
 
+#
 for i in range(cfg.max_iter):
     ind = pockia_train.generate_index(None)
     batch_xs , batch_names = pockia_train.read_image(True, ind)
     batch_ys = train_labels[batch_names]
+    # aug
 
     progress(i ,cfg.max_iter )
     # check normalize
