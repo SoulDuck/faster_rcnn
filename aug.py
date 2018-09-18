@@ -1,6 +1,8 @@
 #-*- coding:utf-8 -*-
 import numpy as np
 from PIL import Image
+import matplotlib
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy.random as npr
