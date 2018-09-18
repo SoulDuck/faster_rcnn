@@ -147,8 +147,12 @@ for i in range(cfg.max_iter):
         if not os.path.isdir(eval_imgdir):
             os.makedirs(eval_imgdir)
 
+
+        val_acc_counter = {} # (count , acc )
+        merged_acc = {}
         for test_ind in range(len(pockia_test.img_paths)):
             utils.progress( test_ind , len(pockia_test.img_paths))
+            # Get batch
             batch_xs , batch_names = pockia_test.read_image(True, test_ind)
             batch_ys = test_labels[batch_names]
             # Test Eval feed , fetches
@@ -160,19 +164,15 @@ for i in range(cfg.max_iter):
             # (1,?, 5 ) ==> (?,5)
             itr_fr_blobs = np.squeeze(itr_fr_blobs )
             fr_blobs_cls = np.hstack([itr_fr_blobs , cls_logits.reshape([-1,1])])
+            # NMS
             nms_keep = non_maximum_supression(fr_blobs_cls, 0.01)
             print 'before nms {} ==> after nms {}'.format(len(fr_blobs_cls), len(nms_keep))
+            # Eval
             acc = Eval.get_accuracy_all(fr_blobs_cls[nms_keep] , batch_ys, n_classes=cfg.n_classes)
-            print acc
-            exit()
+            # merge
 
-
-            # Calculate accuracy
-
-
-
-
-
+            merged_acc = Eval.merge_acc(merged_acc , acc)
+            print merged_acc
 
 
             # (height,width,3) ==>(height ,width,3)

@@ -28,8 +28,10 @@ class Eval():
         preds_cls , trues_cls = map(lambda x : np.asarray(x) , [preds , trues])
         acc = {}
         for i in range(1,n_classes):
+            # background 는 계산하지 않는다
             preds_indices, trues_indices = map(lambda x: np.where([x == i])[1], [preds_cls, trues_cls])
-
+            # pred 갯수가 0개이면 accuracy 가 0 이고 pred 갯수가 0 , trues =0 이면 pass 한다 .
+            # trues =0 인데 preds갯수가 0이 아니면 acc 가 0 입니다.
             if len(preds_indices) == 0 and len(trues_indices) ==0:
                 continue;
             elif len(trues_indices) ==0 and len(preds_indices) != 0:
@@ -39,8 +41,7 @@ class Eval():
                 acc[i] = 0
                 continue;
             # pick specific preds , trues
-            print len(preds_indices)
-            print len(trues_indices)
+
             picked_preds = preds[preds_indices]
             picked_trues = trues[trues_indices]
 
@@ -50,10 +51,22 @@ class Eval():
 
 
 
+    @classmethod
+    def merge_acc(cls , acc_dict , dict_1):
+        for key in dict_1.keys():
+            acc = dict_1[key]
 
+        if not key in acc_dict.keys():
+            # new
+            acc_dict[key] = [1,acc]
+        else:
+            # add elements
+            # count
+            acc_dict[key][0] += 1
+            # count
+            acc_dict[key][1] += acc
 
-
-
+        return acc_dict
 
 if __name__ == '__main__':
     preds= [[100,100,200,200,3] , [50,50,100,100,1]  ,[100,100,100,200,1] ,[300,200,400,400,2] ]
