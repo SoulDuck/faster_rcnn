@@ -107,7 +107,7 @@ tb_writer.add_graph(tf.get_default_graph())
 
 # Set feed
 min_cost = 100000
-ckpt = 100
+ckpt = 16000
 eval_root_imgdir = cfg.eval_imgdir
 
 # Load Dataset
