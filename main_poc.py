@@ -127,70 +127,76 @@ test_labels = pockia_test.read_gtbboxes(test_label_path)
 
 #
 for i in range(cfg.max_iter):
-    ind = pockia_train.generate_index(None)
-    batch_xs , batch_names = pockia_train.read_image(False, ind)
-    batch_ys = train_labels[batch_names]
+    try:
+        ind = pockia_train.generate_index(None)
+        batch_xs , batch_names = pockia_train.read_image(False, ind)
+        batch_ys = train_labels[batch_names]
 
-    # Augmentation
-    batch_cls = batch_ys[:, -1]
-    augmentator.apply_aug(np_img = batch_xs[0] ,anns =  batch_ys[:,:-1])
-    batch_xs = augmentator.sample_dict['img']
-    batch_ys = augmentator.sample_dict['anns']
-    # Merge batch_ys , batch_cls
-    augmentator.imgaug.show_image(batch_xs , batch_ys)
-    batch_ys = np.hstack([batch_ys , batch_cls.reshape([-1,1])])
-    batch_xs = np.asarray(batch_xs) / 255.
-    batch_xs = batch_xs.reshape([1]+list(np.shape(batch_xs)))
+        # Augmentation
+        batch_cls = batch_ys[:, -1]
+        augmentator.apply_aug(np_img = batch_xs[0] ,anns =  batch_ys[:,:-1])
+        batch_xs = augmentator.sample_dict['img']
+        batch_ys = augmentator.sample_dict['anns']
+        # Merge batch_ys , batch_cls
+        augmentator.imgaug.show_image(batch_xs , batch_ys)
+        batch_ys = np.hstack([batch_ys , batch_cls.reshape([-1,1])])
+        batch_xs = np.asarray(batch_xs) / 255.
+        batch_xs = batch_xs.reshape([1]+list(np.shape(batch_xs)))
 
-    progress(i ,cfg.max_iter )
+        progress(i ,cfg.max_iter )
 
-    # check normalize
-    assert np.max(batch_xs) <= 1 ,'image max : {}'.format(np.max(batch_xs))
+        # check normalize
+        assert np.max(batch_xs) <= 1 ,'image max : {}'.format(np.max(batch_xs))
 
-    # Image shape
-    _ , h,w,ch = np.shape(batch_xs)
-    # Set Train Feed
-    train_feed = {x_ : batch_xs , gt_boxes:batch_ys , im_dims : np.asarray([[h,w]])  ,phase_train : True }
-    # Set Train fetches
-    train_fetches = [train_op , cost_op ,itr_fr_bbox_target_op ]
-    # Training
-    train , cost ,itr_fr_bbox_target = sess.run(train_fetches , train_feed)
-    if i % ckpt  == 0 :
-        print "train cost : {} \n".format(cost)
-        # make folder
-        eval_imgdir =os.path.join(eval_root_imgdir ,  str(i))
-        if not os.path.isdir(eval_imgdir):
-            os.makedirs(eval_imgdir)
+        # Image shape
+        _ , h,w,ch = np.shape(batch_xs)
+        # Set Train FeedR
+        train_feed = {x_ : batch_xs , gt_boxes:batch_ys , im_dims : np.asarray([[h,w]])  ,phase_train : True }
+        # Set Train fetches
+        train_fetches = [train_op , cost_op ,itr_fr_bbox_target_op ]
+        # Training
+        train , cost ,itr_fr_bbox_target = sess.run(train_fetches , train_feed)
+        if i % ckpt  == 0 :
+            print "train cost : {} \n".format(cost)
+            # make folder
+            eval_imgdir =os.path.join(eval_root_imgdir ,  str(i))
+            if not os.path.isdir(eval_imgdir):
+                os.makedirs(eval_imgdir)
+            val_acc_counter = {} # (count , acc )
+            merged_acc = {}
+
+            for test_ind in range(len(pockia_test.img_paths[:])):
+                utils.progress( test_ind , len(pockia_test.img_paths))
+                # Get batch
+                batch_xs , batch_names = pockia_test.read_image(True, test_ind)
+                batch_ys = test_labels[batch_names]
+                # Test Eval feed , fetches
+                eval_feed = {x_: batch_xs, gt_boxes: batch_ys, im_dims: [[h, w]], phase_train: False}
+                eval_fetches = [fast_rcnn_cls_logits_op, itr_fr_blobs_op]
+                # Run sess
+                cls_logits , itr_fr_blobs = sess.run(eval_fetches, eval_feed)
+                cls_logits = np.argmax(cls_logits, axis=1)
+                # (1,?, 5 ) ==> (?,5)
+                itr_fr_blobs = np.squeeze(itr_fr_blobs )
+                fr_blobs_cls = np.hstack([itr_fr_blobs , cls_logits.reshape([-1,1])])
+                # NMS
+                nms_keep = non_maximum_supression(fr_blobs_cls, 0.01)
+                print 'before nms {} ==> after nms {}'.format(len(fr_blobs_cls), len(nms_keep))
+                # Eval
+                acc = Eval.get_accuracy_all(fr_blobs_cls[nms_keep] , batch_ys, n_classes=cfg.n_classes)
+                # merge
+                merged_acc = Eval.merge_acc(merged_acc , acc)
+                # (height,width,3) ==>(height ,width,3)
+                batch_xs = batch_xs.reshape(np.shape(batch_xs)[1:])
+                # Draw Foreground Rectangle and Background Rectangle
+                draw_rectangles(batch_xs*255, cls_logits, itr_fr_blobs,
+                                savepath=os.path.join(eval_imgdir , '{}.jpg'.format(test_ind)))
+            acc = Eval.get_meanacc(merged_acc )
+            if acc > 0 :
+                saver.save(sess , 'models/model' , global_step = i)
 
 
-        val_acc_counter = {} # (count , acc )
-        merged_acc = {}
-        for test_ind in range(len(pockia_test.img_paths[:3])):
-            utils.progress( test_ind , len(pockia_test.img_paths))
-            # Get batch
-            batch_xs , batch_names = pockia_test.read_image(True, test_ind)
-            batch_ys = test_labels[batch_names]
-            # Test Eval feed , fetches
-            eval_feed = {x_: batch_xs, gt_boxes: batch_ys, im_dims: [[h, w]], phase_train: False}
-            eval_fetches = [fast_rcnn_cls_logits_op, itr_fr_blobs_op]
-            # Run sess
-            cls_logits , itr_fr_blobs = sess.run(eval_fetches, eval_feed)
-            cls_logits = np.argmax(cls_logits, axis=1)
-            # (1,?, 5 ) ==> (?,5)
-            itr_fr_blobs = np.squeeze(itr_fr_blobs )
-            fr_blobs_cls = np.hstack([itr_fr_blobs , cls_logits.reshape([-1,1])])
-            # NMS
-            nms_keep = non_maximum_supression(fr_blobs_cls, 0.01)
-            print 'before nms {} ==> after nms {}'.format(len(fr_blobs_cls), len(nms_keep))
-            # Eval
-            acc = Eval.get_accuracy_all(fr_blobs_cls[nms_keep] , batch_ys, n_classes=cfg.n_classes)
-            # merge
-            merged_acc = Eval.merge_acc(merged_acc , acc)
-            # (height,width,3) ==>(height ,width,3)
-            batch_xs = batch_xs.reshape(np.shape(batch_xs)[1:])
-            # Draw Foreground Rectangle and Background Rectangle
-            draw_rectangles(batch_xs*255, cls_logits, itr_fr_blobs,
-                            savepath=os.path.join(eval_imgdir , '{}.jpg'.format(test_ind)))
-        print Eval.get_meanacc(merged_acc )
 
 
+    except Exception as e:
+        continue;
