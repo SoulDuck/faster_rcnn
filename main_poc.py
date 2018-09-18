@@ -162,6 +162,11 @@ for i in range(cfg.max_iter):
             fr_blobs_cls = np.hstack([itr_fr_blobs , cls_logits.reshape([-1,1])])
             nms_keep = non_maximum_supression(fr_blobs_cls, 0.01)
             print 'before nms {} ==> after nms {}'.format(len(fr_blobs_cls), len(nms_keep))
+            acc = Eval.get_accuracy_all(fr_blobs_cls[nms_keep] , batch_ys, n_classes=cfg.n_classes)
+            print acc
+            exit()
+
+
             # Calculate accuracy
 
 

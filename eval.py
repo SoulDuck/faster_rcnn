@@ -19,29 +19,33 @@ class Eval():
 
     @classmethod
     def get_accuracy_all(self , preds, trues ,n_classes):
-        assert np.ndim(preds) == np.ndim(trues)  and np.ndim(preds) == 2
+        assert np.ndim(preds) == np.ndim(trues) and np.ndim(preds) == 2,\
+            'preds n dim :{} trues n dims :{}'.format(np.ndim(preds),np.ndim(trues))
         assert np.shape(preds)[-1] == np.shape(trues)[-1] and np.shape(preds)[-1] == 5
         preds, trues = map(np.asarray ,[preds , trues])
         # preds [[x1,y1,x2,y2,label ]]
         # trues [[x1,y1,x2,y2,label ]]
         preds_cls , trues_cls = map(lambda x : np.asarray(x) , [preds , trues])
-        acc = []
-        for i in range(n_classes):
-            preds_indices, trues_indices = map(lambda x: np.where([preds_cls == i])[1], [preds_cls, trues_cls])
+        acc = {}
+        for i in range(1,n_classes):
+            preds_indices, trues_indices = map(lambda x: np.where([x == i])[1], [preds_cls, trues_cls])
+
             if len(preds_indices) == 0 and len(trues_indices) ==0:
                 continue;
             elif len(trues_indices) ==0 and len(preds_indices) != 0:
-                acc.append(0)
+                acc[i] = 0
                 continue;
             elif len(preds_indices) ==0 and len(trues_indices) != 0:
-                acc.append(0)
+                acc[i] = 0
                 continue;
             # pick specific preds , trues
+            print len(preds_indices)
+            print len(trues_indices)
             picked_preds = preds[preds_indices]
             picked_trues = trues[trues_indices]
 
             # accuracy
-            acc.append(self.get_accuracy(picked_preds, picked_trues))
+            acc[i] = self.get_accuracy(picked_preds, picked_trues)
         return acc
 
 
