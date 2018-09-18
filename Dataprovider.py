@@ -1,3 +1,4 @@
+#-*- coding:utf-8 -*-
 import glob , os ,sys
 from PIL import Image
 import numpy as np
@@ -32,6 +33,10 @@ class Dataprovider():
             batch_ys = labs[indices]
 
         return batch_xs , batch_ys
+    def get_name(self , path ):
+        name=os.path.split(path)[-1]
+        return name
+
 
 
 class Wally(Dataprovider):
@@ -86,11 +91,32 @@ class Wally(Dataprovider):
 class PocKia(Dataprovider):
     def __init__(self,imgdir ,imgext):
         Dataprovider.__init__(self, imgdir, imgext)
+        self.n_imgs = len(self.img_paths)
     def read_images_on_RAM(self):
+        # Ram 에다 다 올릴수 없어서 한장씩 불러오는 코드를 짜야 합니다
         pass;
-    def read_gtbboxes_onRAM(self , label_path):
-        pass;
-    def _read_gtbboxes(self,label_path):
+    def generate_index(self , ind):
+        if ind is None:
+            ind = npr.randint(0,self.n_imgs)
+        else:
+            ind = ind % self.n_imgs
+        return ind
+    def read_image(self , normalize , ind ):
+        img_path = self.img_paths[ind]
+        img_name = self.get_name(img_path)
+        # read image
+        img = np.asarray(Image.open(img_path).convert('RGB'))
+        # normalize
+        if normalize:
+           img = img / 255.
+        # reshape image to feed
+        img = np.reshape(img , [1]+list(np.shape(img)))
+        return img  , img_name
+
+    def read_label(self , labels , ind):
+        return labels[ind]
+
+    def read_gtbboxes(self,label_path):
         f = open(label_path, 'r')
         lines = f.readlines()
         ret_gtbboxes = {}
@@ -110,7 +136,8 @@ class PocKia(Dataprovider):
         return ret_gtbboxes
 
     def read_gtbboxes_onRAM(self ,label_path):
-        gtbboxes_dict = self._read_gtbboxes(label_path)
+        # 불러온 순서에 맞게 path을 조정합니다
+        gtbboxes_dict = self.read_gtbboxes(label_path)
         ret_gtbboxes=[]
         error_labels = []
         for name in self.img_names:
@@ -123,8 +150,33 @@ class PocKia(Dataprovider):
         return np.asarray(ret_gtbboxes)
 
 if __name__ == '__main__':
+    # Wally Test
+    """
     wally = Wally(imgdir='./WallyDataset/images' , imgext='jpg')
     gt_bboxes = wally.read_gtbboxes_onRAM('./WallyDataset/annotations/annotations.csv')
     print np.shape(gt_bboxes)
+    """
+    # POC KIA Test
+    pockia = PocKia(imgdir='/Volumes/My Passport/data/kia/review_data/test', imgext='jpg')
+    #
+    label_path = 'labels.txt'
+    ind = pockia.generate_index(None)
+    img = pockia.read_image(True , ind )
+    # label dict
+    labels = pockia.read_gtbboxes_onRAM(label_path)
+    # Choose one label correspond image
+    label = pockia.read_label(labels , ind )
+
+    print 'Image shape : {} , label shape {} '.format(np.shape(img) , np.shape(label))
+
+    import matplotlib.pyplot as plt
+    import cv2
+    import utils
+    img = np.squeeze(img)*255
+    label = np.asarray(label)
+    labels = label[:,-1]
+    bboxes = label[:, :-1]
+    utils.draw_bboxes(np.squeeze(img), bboxes , labels ,savepath='tmp.png')
+
 
 

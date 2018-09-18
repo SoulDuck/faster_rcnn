@@ -32,3 +32,7 @@ class Backbone(object):
 
 
 
+    def pretrained_vgg(self):
+        pass;
+    def pretrained_inceptinonv3(self):
+        pass;

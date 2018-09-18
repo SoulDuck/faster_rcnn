@@ -44,7 +44,7 @@ def roi_pool(featureMaps, rois, im_dims):
 
     return pooledFeatures , boxes , box_ind
 
-def fast_rcnn(top_conv , rois , im_dims,num_classes , phase_train):
+def fast_rcnn(top_conv , rois , im_dims, num_classes , phase_train):
     print '######################################'
     print '###### Fast R-CNN building.... #######'
     print '######################################'
