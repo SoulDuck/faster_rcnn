@@ -3,9 +3,9 @@
 
 
 
-train_imgdir = './clutteredPOCKIA_TRAIN'
+train_imgdir = './clutteredPOCKIA_TRAIN/Images'
 train_imgext = 'jpg'
-test_imgdir = './clutteredPOCKIA_TEST_2'
+test_imgdir = './clutteredPOCKIA_TEST_2/Images'
 test_imgext = 'jpg'
 
 train_label_path = './clutteredPOCKIA_TRAIN/poc_labels.txt'

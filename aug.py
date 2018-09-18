@@ -12,6 +12,7 @@ import math
 import copy
 import tensorflow as tf
 import time
+
 # ref : https://github.com/mdbloice/Augmentor
 from PIL import ImageFilter
 from imgaug import augmenters as iaa
